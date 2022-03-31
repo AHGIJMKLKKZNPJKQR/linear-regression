@@ -1,5 +1,8 @@
+#pragma once
+
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 template <typename T>
 class Matrix {
@@ -7,7 +10,7 @@ class Matrix {
     size_t n, m;
     
 public:
-    Matrix() = default;
+    Matrix() : content(), n(0), m(0) {};
     Matrix(const Matrix &) = default;
     Matrix(const size_t &n, const size_t &m) : content(std::vector<std::vector<T>>(n, std::vector<T>(m, 0))), n(n), m(m) {};
     Matrix(const std::vector<T> &v) : content(std::vector<std::vector<T>>(1, v)), n(1), m(v.size()) {};
@@ -90,6 +93,15 @@ public:
             for (size_t j = 0; j < m; ++j)
                 A[j][i] = content[i][j];
         return A;
+    }
+
+    // Add row
+
+    void addRow(const std::vector<T> &v) {
+        assert(n == 0 || v.size() == m);
+        content.push_back(v);
+        if (!n) m = v.size();
+        ++n;
     }
 
     // Getters
