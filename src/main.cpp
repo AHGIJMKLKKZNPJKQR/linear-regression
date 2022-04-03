@@ -48,7 +48,7 @@ void doTrainingWithDump(
     elasticFile.open(ELASTIC_DUMP + "." + change.name);
     elasticFile << std::fixed << std::setprecision(4);
 
-    theta = regress(LASSO_LAMBDA_MAX, RIDGE_LAMBDA_MAX, Xt, yt, Xv, yv, elasticNetRegression, elasticFile);
+    theta = regress(LASSO_LAMBDA_MAX / 2, RIDGE_LAMBDA_MAX / 2, Xt, yt, Xv, yv, elasticNetRegression, elasticFile);
     elasticFile.close();
     saveParamsToFile(theta, ELASTIC_SOLUTION + "." + change.name);
     std::cout << "DONE\n";
@@ -103,44 +103,44 @@ void doRegression() {
         
         Matrix<double> Xt, Xv, Xs;
         std::vector<double> yt, yv, ys;    
-        for (int seed = 0; seed < NUMBER_OF_RUNS; ++seed) { 
+        for (int seed = 2185; seed < 2185 + NUMBER_OF_RUNS; ++seed) { 
             std::cout << "SEED = " << seed << '\n';
             getData(Xt, yt, Xv, yv, Xs, ys, seed);
             Xt = applyBase(Xt, change.func);
             Xv = applyBase(Xv, change.func);
             Xs = applyBase(Xs, change.func);
             
-            // Matrix<double> Xta;
-            // std::vector<double> yta;
-            // for (int trainingSize = 0; trainingSize < (int)TRAINING_FRACS.size(); ++trainingSize)
-                // doTraining(Xt, yt, Xta, yta, Xv, yv, Xs, ys, ridgeAvgErr, lassoAvgErr, elasticAvgErr, trainingSize);
+            Matrix<double> Xta;
+            std::vector<double> yta;
+            for (int trainingSize = 0; trainingSize < (int)TRAINING_FRACS.size(); ++trainingSize)
+                doTraining(Xt, yt, Xta, yta, Xv, yv, Xs, ys, ridgeAvgErr, lassoAvgErr, elasticAvgErr, trainingSize);
         }
-        doTrainingWithDump(Xt, yt, Xv, yv, change);   
+        // doTrainingWithDump(Xt, yt, Xv, yv, change);   
 
-        // for (double &i : ridgeAvgErr)
-        //     i /= NUMBER_OF_RUNS;
+        for (double &i : ridgeAvgErr)
+            i /= NUMBER_OF_RUNS;
 
-        // for (double &i : lassoAvgErr)
-        //     i /= NUMBER_OF_RUNS;
+        for (double &i : lassoAvgErr)
+            i /= NUMBER_OF_RUNS;
 
-        // for (double &i : elasticAvgErr)
-        //     i /= NUMBER_OF_RUNS;
+        for (double &i : elasticAvgErr)
+            i /= NUMBER_OF_RUNS;
 
-        // std::ofstream errFile;
-        // errFile.open(RIDGE_ERROR + "." + change.name);
-        // for (int i = 0; i < (int)ridgeAvgErr.size(); ++i)
-        //     errFile << TRAINING_FRACS[i] << '\t' << ridgeAvgErr[i] << '\n';
-        // errFile.close();
+        std::ofstream errFile;
+        errFile.open(RIDGE_ERROR + "." + change.name);
+        for (int i = 0; i < (int)ridgeAvgErr.size(); ++i)
+            errFile << TRAINING_FRACS[i] << '\t' << ridgeAvgErr[i] << '\n';
+        errFile.close();
 
-        // errFile.open(LASSO_ERROR + "." + change.name);
-        // for (int i = 0; i < (int)lassoAvgErr.size(); ++i)
-        //     errFile << TRAINING_FRACS[i] << '\t' << lassoAvgErr[i] << '\n';
-        // errFile.close();
+        errFile.open(LASSO_ERROR + "." + change.name);
+        for (int i = 0; i < (int)lassoAvgErr.size(); ++i)
+            errFile << TRAINING_FRACS[i] << '\t' << lassoAvgErr[i] << '\n';
+        errFile.close();
         
-        // errFile.open(ELASTIC_ERROR + "." + change.name);
-        // for (int i = 0; i < (int)elasticAvgErr.size(); ++i)
-        //     errFile << TRAINING_FRACS[i] << '\t' << elasticAvgErr[i] << '\n';
-        // errFile.close();
+        errFile.open(ELASTIC_ERROR + "." + change.name);
+        for (int i = 0; i < (int)elasticAvgErr.size(); ++i)
+            errFile << TRAINING_FRACS[i] << '\t' << elasticAvgErr[i] << '\n';
+        errFile.close();
     }
 }
 
