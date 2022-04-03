@@ -1,15 +1,12 @@
 #include "utils.h"
 #include "const.h"
 
-void minCoord(std::vector<double> &v, const int &idx, const std::function<double(const double &)> &df) {
-    double a = INIT_GRAD, change;
-    while (true) {
-        for (int i = 0; i < MAX_ITER; ++i) {
-            if ((change = abs(df(v[idx]))) < EPS)
-                return;
-            v[idx] -= a * change;
-        }
-        a *= GRAD_PARAM;
+void coordDescent(std::vector<double> &v, const std::function<double(std::vector<double> &, const size_t &)> &updateFunc) {
+    double maxdiff = std::numeric_limits<double>::max();
+    while (maxdiff > EPS) {
+        maxdiff = 0;
+        for (size_t i = 0; i < v.size(); ++i)
+            maxdiff = std::max(abs(updateFunc(v, i)), maxdiff);
     }
 }
 

@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-void minCoord(std::vector<double> &, const int &idx, const std::function<double(const double &)> &df);
+void coordDescent(std::vector<double> &, const std::function<double(std::vector<double> &, const size_t &)> &);
 void gradient(std::vector<double> &, const std::function<double(std::vector<double> &, const double &)> &);
 double norm1(const std::vector<double> &);
 double norm2(const std::vector<double> &);
@@ -15,10 +15,19 @@ double abs(const T &a) {
     return a < 0 ? -a : a;
 }
 
+// This has to go first
+template <typename T>
+std::ostream & operator<<(std::ostream &os, const std::vector<std::vector<T>> &v) {
+    for (const std::vector<T> &i : v)
+        os << i << '\n';
+    return os;
+}
+
+// This has to go second
 template <typename T>
 std::ostream & operator<<(std::ostream &os, const std::vector<T> &v) {
     for (const T &i : v)
-        os << i << ' ';
+        os << i << '\t';
     return os;
 }
 

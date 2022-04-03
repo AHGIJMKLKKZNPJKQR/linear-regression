@@ -12,7 +12,7 @@ class Matrix {
 public:
     Matrix() : content(), n(0), m(0) {};
     Matrix(const Matrix &) = default;
-    Matrix(const size_t &n, const size_t &m) : content(std::vector<std::vector<T>>(n, std::vector<T>(m, 0))), n(n), m(m) {};
+    Matrix(const size_t &n, const size_t &m) : content(std::vector<std::vector<T>>(n, std::vector<T>(m, T()))), n(n), m(m) {};
     Matrix(const std::vector<T> &v) : content(std::vector<std::vector<T>>(1, v)), n(1), m(v.size()) {};
     
     // Addition
@@ -22,13 +22,12 @@ public:
         assert(A.m == this->m);
         for (size_t i = 0; i < n; ++i)
             for (size_t j = 0; j < m; ++j)
-                (*this)[i][j] += A[i][j];    
+                content[i][j] += A[i][j]; 
         return *this;
     }
     
-    friend Matrix<T> operator+(const Matrix<T> &A, const Matrix<T> &B) {
-        Matrix<T> C(A);
-        return C += B;
+    friend Matrix<T> operator+(Matrix<T> A, const Matrix<T> &B) {
+        return A += B;
     }
 
     // Subtraction
@@ -42,9 +41,8 @@ public:
         return *this;
     }
 
-    friend Matrix<T> operator-(const Matrix<T> &A, const Matrix<T> &B) {
-        Matrix<T> C(A);
-        return C -= B;
+    friend Matrix<T> operator-(Matrix<T> A, const Matrix<T> &B) {
+        return A -= B;
     }
 
     // Multiplication
@@ -58,6 +56,14 @@ public:
                 for (size_t k = 0; k < A.m; ++k)
                     C[i][j] += A[i][k] * B[k][j];
         return C;
+    }
+
+    friend Matrix<T> operator*(const T &c, const Matrix<T> &A) {
+        Matrix<T> B(A);
+        for (size_t i = 0; i < B.getN(); ++i)
+            for (size_t j = 0; j < B.getM(); ++j)
+                B[i][j] *= c;
+        return B;
     }
 
     Matrix<T> & operator*=(const Matrix<T> &A) {
@@ -93,6 +99,33 @@ public:
             for (size_t j = 0; j < m; ++j)
                 A[j][i] = content[i][j];
         return A;
+    }
+
+    Matrix<T> inverse() const {
+        assert(n == m);
+
+        Matrix<T> A(*this), B(n, n);
+        for (size_t i = 0; i < n; ++i)
+            B[i][i] = 1;
+
+        for (size_t i = 0; i < n; ++i) {
+            assert(A[i][i] != 0.0);
+            for (size_t j = 0; j < n; ++j) {
+                if (i != j) {
+                    T ratio = A[j][i] / A[i][i];
+                    for (size_t k = 0; k < n; ++k)
+                        A[j][k] -= ratio * A[i][k];
+                    for (size_t k = 0; k < n; ++k)
+                        B[j][k] -= ratio * B[i][k];
+                }
+            }
+        }
+
+        for (size_t i = 0; i < n; ++i)
+            for (size_t j = 0; j < n; ++j)
+                B[i][j] /= A[i][i];
+        
+        return B;
     }
 
     // Add row
@@ -134,4 +167,12 @@ std::vector<T> operator-(const std::vector<T> &a, const std::vector<T> &b) {
     for (size_t i = 0; i < v.size(); ++i)
         v[i] -= b[i];
     return v;
+}
+
+template <typename T>
+Matrix<T> Id(const size_t &n) {
+    Matrix<T> I(n, n);
+    for (size_t i = 0; i < n; ++i)
+        I[i][i] = 1;
+    return I;
 }

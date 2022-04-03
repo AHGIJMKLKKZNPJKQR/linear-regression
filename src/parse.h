@@ -7,9 +7,12 @@
 void getData(
     Matrix<double> &, std::vector<double> &,
     Matrix<double> &, std::vector<double> &,
-    Matrix<double> &, std::vector<double> &
+    Matrix<double> &, std::vector<double> &,
+    const int & = SEED
 );
 
 std::vector<std::pair<double, double>> normalizationParams(const Matrix<double> &);
 void normalize(Matrix<double> &, std::vector<std::pair<double, double>> &);
-void applyBase(Matrix<double> &, const std::function<double(const double &)> &);
+
+std::vector<std::pair<double, double>> standardizationParams(const Matrix<double> &);
+void standardize(Matrix<double> &, std::vector<std::pair<double, double>> &);

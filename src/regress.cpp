@@ -1,70 +1,151 @@
+#include <limits>
+#include <iostream>
+#include <fstream>
+#include <thread>
+
 #include "regress.h"
 #include "const.h"
 #include "utils.h"
-#include <limits>
-#include <iostream>
-#include <thread>
 
 void threadFunc(
-    std::vector<double> &argMin, double &minDev, double &bestL, 
-    const Matrix<double> &trainingX, const std::vector<double> &trainingY, 
-    const Matrix<double> &validationX, const std::vector<double> &validationY,
+    const int &lambda_max,
+    std::vector<std::vector<double>> &argMin,
+    const Matrix<double> &trainingX, const std::vector<double> &trainingY,
     const std::function<std::vector<double>(const Matrix<double> &, const std::vector<double> &, const double &)> &regFunc,
     const int &offset
 ) {
-        std::vector<double> theta(regFunc(trainingX, trainingY, 0));
-        double initNorm = norm2(theta);
-        double dev = fitness(theta, validationX, validationY);
-        argMin = theta;
-        minDev = dev;
-
-        for (double lambda = LAMBDA_JMP * (double)offset; norm2(theta) > LAMBDA_EPS * initNorm; lambda += (double)THREADS * LAMBDA_JMP) {
-            std::cout << "Lambda = " << lambda << '\n';
-            theta = regFunc(trainingX, trainingY, lambda);
-            dev = fitness(theta, validationX, validationY);
-            if (dev < minDev) {
-                minDev = dev;
-                argMin = theta;
-                bestL = lambda;
-            }
-        }
-    }
+    for (int i = offset; i < lambda_max; i += THREADS)
+        argMin[i] = regFunc(trainingX, trainingY, (double)i * LAMBDA_JMP);
+}
 
 std::vector<double> regress(
+    const int &lambda_max,
     const Matrix<double> &trainingX, 
     const std::vector<double> &trainingY,
     const Matrix<double> &validationX, 
     const std::vector<double> &validationY,
     const std::function<std::vector<double>(const Matrix<double> &, const std::vector<double> &, const double &)> &regFunc
 ) {
-    // std::cout << "NUM_THREADS = " << THREADS << '\n';
-
     std::vector<std::thread> threads;
 
-    std::vector<std::vector<double>> argMin(THREADS);
-    std::vector<double> minDev(THREADS);
-    std::vector<double> bestL(THREADS, 0);
-
+    std::vector<std::vector<double>> argMin(lambda_max);
     for (int i = 0; i < THREADS; ++i)
-        threads.emplace_back(
-            threadFunc, 
-            std::ref(argMin[i]), std::ref(minDev[i]), std::ref(bestL[i]), 
-            std::cref(trainingX), std::cref(trainingY), 
-            std::cref(validationX), std::cref(validationY),
-            regFunc,
-            i+1
-        );
+        threads.emplace_back(threadFunc, lambda_max, std::ref(argMin), std::cref(trainingX), std::cref(trainingY), regFunc, i);
 
     for (int i = 0; i < THREADS; ++i)
         threads[i].join();
 
     int best = 0;
-    for (int i = 1; i < THREADS; ++i)
-        if (minDev[i] < minDev[best])
-            best = i;
+    double dev, mindev = std::numeric_limits<double>::max();
+    for (int i = 0; i < lambda_max; ++i)
+        if ((dev = fitness(argMin[i], validationX, validationY)) < mindev)
+            mindev = dev, best = i;
 
-    std::cout << "Choosing lambda = " << bestL[best] << '\n';
     return argMin[best];
+}
+
+std::vector<double> regress(
+    const int &lambda_max,
+    const Matrix<double> &trainingX, 
+    const std::vector<double> &trainingY,
+    const Matrix<double> &validationX, 
+    const std::vector<double> &validationY,
+    const std::function<std::vector<double>(const Matrix<double> &, const std::vector<double> &, const double &)> &regFunc,
+    std::ofstream &dumpFile
+) {
+    std::vector<std::thread> threads;
+
+    std::vector<std::vector<double>> argMin(lambda_max);
+    for (int i = 0; i < THREADS; ++i)
+        threads.emplace_back(threadFunc, lambda_max, std::ref(argMin), std::cref(trainingX), std::cref(trainingY), regFunc, i);
+
+    for (int i = 0; i < THREADS; ++i)
+        threads[i].join();
+
+    int best = 0;
+    double dev, mindev = std::numeric_limits<double>::max();
+    for (int i = 0; i < lambda_max; ++i) {
+        dumpFile << (LAMBDA_JMP * (double)i) << '\t' << argMin[i];
+        if ((dev = fitness(argMin[i], validationX, validationY)) < mindev)
+            mindev = dev, best = i;
+        dumpFile << dev / (double)validationY.size() << '\n';
+    }
+
+    return argMin[best];
+}
+
+void threadFunc2(
+    const int &l1_max,
+    const int &l2_max,
+    std::vector<std::vector<std::vector<double>>> &argMin,
+    const Matrix<double> &trainingX, const std::vector<double> &trainingY,
+    const std::function<std::vector<double>(const Matrix<double> &, const std::vector<double> &, const double &, const double &)> &regFunc,
+    const int &offset
+) {
+    for (int i = offset; i < l1_max; i += THREADS)
+        for (int j = 0; j < l2_max; ++j)
+            argMin[i][j] = regFunc(trainingX, trainingY, (double)i * LAMBDA_JMP, (double)j * LAMBDA_JMP);
+}
+
+std::vector<double> regress(
+    const int &l1_max,
+    const int &l2_max,
+    const Matrix<double> &trainingX, 
+    const std::vector<double> &trainingY,
+    const Matrix<double> &validationX, 
+    const std::vector<double> &validationY,
+    const std::function<std::vector<double>(const Matrix<double> &, const std::vector<double> &, const double &, const double &)> &regFunc
+) {
+    std::vector<std::thread> threads;
+
+    std::vector<std::vector<std::vector<double>>> argMin(l1_max, std::vector<std::vector<double>>(l2_max));
+    for (int i = 0; i < THREADS; ++i)
+        threads.emplace_back(threadFunc2, l1_max, l2_max, std::ref(argMin), std::cref(trainingX), std::cref(trainingY), regFunc, i);
+
+    for (int i = 0; i < THREADS; ++i)
+        threads[i].join();
+
+    std::pair<int, int> best = {0, 0};
+    double dev, mindev = std::numeric_limits<double>::max();
+    for (int i = 0; i < l1_max; ++i)
+        for (int j = 0; j < l2_max; ++j)
+            if ((dev = fitness(argMin[i][j], validationX, validationY)) < mindev)
+                mindev = dev, best = {i, j};
+
+    return argMin[best.first][best.second];
+}
+
+std::vector<double> regress(
+    const int &l1_max,
+    const int &l2_max,
+    const Matrix<double> &trainingX, 
+    const std::vector<double> &trainingY,
+    const Matrix<double> &validationX, 
+    const std::vector<double> &validationY,
+    const std::function<std::vector<double>(const Matrix<double> &, const std::vector<double> &, const double &, const double &)> &regFunc,
+    std::ofstream &dumpFile
+) {
+    std::vector<std::thread> threads;
+
+    std::vector<std::vector<std::vector<double>>> argMin(l1_max, std::vector<std::vector<double>>(l2_max));
+    for (int i = 0; i < THREADS; ++i)
+        threads.emplace_back(threadFunc2, l1_max, l2_max, std::ref(argMin), std::cref(trainingX), std::cref(trainingY), regFunc, i);
+
+    for (int i = 0; i < THREADS; ++i)
+        threads[i].join();
+
+    std::pair<int, int> best = {0, 0};
+    double dev, mindev = std::numeric_limits<double>::max();
+    for (int i = 0; i < l1_max; ++i) {
+        for (int j = 0; j < l2_max; ++j) {
+            dumpFile << (LAMBDA_JMP * (double)i) << '\t' << (LAMBDA_JMP * (double)j) << '\t' << argMin[i][j];
+            if ((dev = fitness(argMin[i][j], validationX, validationY)) < mindev)
+                mindev = dev, best = {i, j};
+            dumpFile << dev / (double)validationY.size() << '\n';
+        }
+    }
+
+    return argMin[best.first][best.second];
 }
 
 double fitness(const std::vector<double> &theta, const Matrix<double> &X, const std::vector<double> &y) {
