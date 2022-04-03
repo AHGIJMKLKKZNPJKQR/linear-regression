@@ -51,6 +51,7 @@ void getData(
     srand(seed);
     std::random_shuffle(input.begin(), input.end());
     
+    Xt.clear(), yt.clear(), Xv.clear(), yv.clear(), Xs.clear(), ys.clear();
     std::vector<std::vector<double>>::iterator from = input.begin();
     fill(Xt, yt, from, from + (size_t)((double)input.size() * TRAINING_SIZE));
     fill(Xv, yv, from, from + (size_t)((double)input.size() * VALIDATION_SIZE));

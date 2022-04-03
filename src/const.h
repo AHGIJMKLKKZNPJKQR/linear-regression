@@ -8,9 +8,9 @@ const int MAX_ITER = 100;
 const double EPS = 1e-5;
 const double GRAD_PARAM = 0.95;
 const double INIT_GRAD = 0.9;
-const int RIDGE_LAMBDA_MAX = 300;
-const int LASSO_LAMBDA_MAX = 500;
-const double LAMBDA_JMP = 3;
+const int RIDGE_LAMBDA_MAX = 3000;
+const int LASSO_LAMBDA_MAX = 5000;
+const double LAMBDA_JMP = 5;
 
 const std::string DATA_PATH = "data/dane.data";
 const unsigned int SEED = 2;

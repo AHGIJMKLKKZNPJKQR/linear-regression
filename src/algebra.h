@@ -91,6 +91,13 @@ public:
         return content[idx];
     }
 
+    // Clear content
+
+    void clear() {
+        n = m = 0;
+        content.clear();
+    }
+
     // Transpose
 
     Matrix<T> transpose() const {

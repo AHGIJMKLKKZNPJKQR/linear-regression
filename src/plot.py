@@ -10,8 +10,6 @@ file = open(sys.argv[1], 'r')
 
 data = np.array([[np.double(x) for x in l.strip().split()] for l in list(file)])
 
-
-
 x = data[:, 0]
 
 fig, ax = plt.subplots()
@@ -22,5 +20,5 @@ ax.set_ylabel('Average error squared')
 # for i in range(2, data.shape[1] - 1):
     # ax.plot(x, data[:, i], label=f'x{i-1}')
 ax.plot(x, data[:, data.shape[1] - 1])
-ax.legend()
+# ax.legend()
 plt.show()

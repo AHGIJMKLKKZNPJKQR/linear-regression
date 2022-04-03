@@ -22,10 +22,10 @@ std::function<double(std::vector<double> &, const size_t &)> lassoUpdate(const M
             return v[idx] - save;
         }
 
-        if (c < -lambda)
-            v[idx] = (c + lambda) / a;
-        else if (c > lambda)
-            v[idx] = (c - lambda) / a;
+        if (c < -lambda * X.getM())
+            v[idx] = (c + lambda * X.getM()) / a;
+        else if (c > lambda * X.getM())
+            v[idx] = (c - lambda * X.getM()) / a;
         else v[idx] = 0;
 
         return v[idx] - save;
