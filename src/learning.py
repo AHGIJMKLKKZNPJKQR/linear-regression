@@ -13,16 +13,13 @@ data = np.array([[np.double(x) for x in l.strip().split()] for l in list(file)])
 x = data[:, 0]
 
 fig, ax = plt.subplots()
-ax.set_xlabel('Regularization parameter')
+ax.set_xlabel('Training data subset')
 ax.set_ylabel('Average error squared')
 
-y = data[:, data.shape[1] - 1]
-ymin = y.min()
-yargmin = y.argmin()
+y = data[:, 1]# ymin = y.min()
 
 ax.plot(x, y)
+ax.scatter(x, y, color="red")
 
-ax.scatter(x[yargmin], ymin, color = "red")
-
-plt.xscale("log")
+# plt.xscale("log")
 plt.show()
