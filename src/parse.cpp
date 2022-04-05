@@ -46,8 +46,6 @@ void getData(
     }
     data.close();
 
-    // scale(input);
-
     srand(seed);
     std::random_shuffle(input.begin(), input.end());
     
@@ -57,21 +55,22 @@ void getData(
     fill(Xv, yv, from, from + (size_t)((double)input.size() * VALIDATION_SIZE));
     fill(Xs, ys, from, input.end());
 
-    std::vector<std::pair<double, double>> params = normalizationParams(Xt);
-    // std::vector<std::pair<double, double>> params = standardizationParams(Xt);
-    normalize(Xt, params);
-    normalize(Xv, params);
-    normalize(Xs, params);
+    // std::vector<std::pair<double, double>> params = normalizationParams(Xt);
+    std::vector<std::pair<double, double>> params = standardizationParams(Xt);
+    // normalize(Xt, params);
+    // normalize(Xv, params);
+    // normalize(Xs, params);
+    standardize(Xt, params);
+    standardize(Xv, params);
+    standardize(Xs, params);
     std::ofstream dumpFile;
-    dumpFile.open(NORMALIZED_DATA_FILE);
+    // dumpFile.open(NORMALIZED_DATA_FILE);
+    dumpFile.open(STANDARDIZED_DATA_FILE);
     dumpFile << std::fixed << std::setprecision(4);
     dump(Xt, yt, dumpFile);
     dump(Xv, yv, dumpFile);
     dump(Xs, ys, dumpFile);
     dumpFile.close();
-    // standardize(Xt, params);
-    // standardize(Xv, params);
-    // standardize(Xs, params);
 }
 
 std::vector<std::pair<double, double>> normalizationParams(const Matrix<double> &X) {

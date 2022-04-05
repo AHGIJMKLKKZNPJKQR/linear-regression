@@ -17,6 +17,8 @@
 #include "main.h"
 #include "elastic.h"
 
+const int INIT_SEED = time(0);
+
 void doTrainingWithDump(
     const Matrix<double> &Xt, const std::vector<double> &yt,
     const Matrix<double> &Xv, const std::vector<double> &yv,
@@ -126,8 +128,8 @@ void doRegression() {
         std::vector<double> elasticMaxErr(TRAINING_FRACS.size(), 0);
 
         Matrix<double> Xt, Xv, Xs;
-        std::vector<double> yt, yv, ys;    
-        for (int seed = 2185; seed < 2185 + NUMBER_OF_RUNS; ++seed) { 
+        std::vector<double> yt, yv, ys;
+        for (int seed = INIT_SEED; seed < INIT_SEED + NUMBER_OF_RUNS; ++seed) { 
             std::cout << "SEED = " << seed << '\n';
             getData(Xt, yt, Xv, yv, Xs, ys, seed);
             Xt = applyBase(Xt, change.func);
@@ -145,7 +147,7 @@ void doRegression() {
                     trainingSize
                 );
         }
-        // doTrainingWithDump(Xt, yt, Xv, yv, change);   
+        doTrainingWithDump(Xt, yt, Xv, yv, change);   
 
         for (double &i : ridgeAvgErr)
             i /= NUMBER_OF_RUNS;

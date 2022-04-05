@@ -5,12 +5,12 @@
 #include <thread>
 
 const int MAX_ITER = 100;
-const double EPS = 1e-4;
+const double EPS = 1e-5;
 const double GRAD_PARAM = 0.95;
 const double INIT_GRAD = 0.9;
-const int RIDGE_LAMBDA_MAX = 400;
-const int LASSO_LAMBDA_MAX = 3000;
-const double LAMBDA_JMP = 7;
+const int RIDGE_LAMBDA_MAX = 100;
+const int LASSO_LAMBDA_MAX = 300;
+const double LAMBDA_JMP = 100;
 
 const std::string DATA_PATH = "data/dane.data";
 const unsigned int SEED = 2;
@@ -18,6 +18,7 @@ const double TRAINING_SIZE = 0.6;
 const double VALIDATION_SIZE = 0.2;
 
 const std::string NORMALIZED_DATA_FILE = "data/norm.data"; 
+const std::string NORMALIZED_DATA_FILE = "data/std.data"; 
 
 const std::string RIDGE_DUMP = "out/ridge.dump"; 
 const std::string RIDGE_ERROR = "out/ridge.err"; 
@@ -37,7 +38,7 @@ const double MIN_SCALE = 2;
 
 const int NUMBER_OF_RUNS = 4;
 const std::vector<double> TRAINING_FRACS {
-    0.01, 0.02, 0.03, 0.125, 0.2, 0.375, 0.5, 0.625, 1
+    0.01, 0.02, 0.03, 0.1, 0.125, 0.2, 0.3, 0.4, 0.5, 0.625, 0.7, 0.8, 0.9, 1
 };
 
 const int THREADS = std::thread::hardware_concurrency();
